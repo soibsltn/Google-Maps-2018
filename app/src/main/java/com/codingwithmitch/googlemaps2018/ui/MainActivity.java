@@ -1,17 +1,14 @@
 package com.codingwithmitch.googlemaps2018.ui;
 
 import android.app.AlertDialog;
-import android.app.Dialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.location.LocationManager;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.design.widget.Snackbar;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
+import androidx.annotation.NonNull;
+import com.google.android.material.snackbar.Snackbar;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import android.text.InputType;
 import android.util.Log;
 import android.view.Menu;
@@ -24,8 +21,6 @@ import android.widget.Toast;
 import com.codingwithmitch.googlemaps2018.R;
 import com.codingwithmitch.googlemaps2018.adapters.ChatroomRecyclerAdapter;
 import com.codingwithmitch.googlemaps2018.models.Chatroom;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
@@ -44,8 +39,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import javax.annotation.Nullable;
-
-import static com.codingwithmitch.googlemaps2018.Constants.ERROR_DIALOG_REQUEST;
 
 
 public class MainActivity extends AppCompatActivity implements
@@ -105,7 +98,7 @@ public class MainActivity extends AppCompatActivity implements
     private void getChatrooms(){
 
         FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder()
-                .setTimestampsInSnapshotsEnabled(true)
+
                 .build();
         mDb.setFirestoreSettings(settings);
 
@@ -145,7 +138,7 @@ public class MainActivity extends AppCompatActivity implements
         chatroom.setTitle(chatroomName);
 
         FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder()
-                .setTimestampsInSnapshotsEnabled(true)
+
                 .build();
         mDb.setFirestoreSettings(settings);
 
