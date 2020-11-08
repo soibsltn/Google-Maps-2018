@@ -2,6 +2,7 @@
     <string name="app_name">GoogleMaps2018</string>
 
 
+    <string name="maps_api_key">AIzaSyDwmAgVF00jGyG6psK9DR6epFLaMOFFXco</string>
     <!-- Strings related to login -->
     <string name="prompt_email">Email</string>
     <string name="prompt_password">Password (optional)</string>
