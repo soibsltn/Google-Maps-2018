@@ -1,23 +1,30 @@
 package com.codingwithmitch.googlemaps2018.ui;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
+
 import androidx.annotation.NonNull;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.material.snackbar.Snackbar;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import android.text.InputType;
 import android.util.Log;
 import android.view.Menu;
@@ -39,6 +46,7 @@ import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.FirebaseFirestoreSettings;
+import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -56,8 +64,7 @@ import static com.codingwithmitch.googlemaps2018.Constants.PERMISSIONS_REQUEST_E
 
 public class MainActivity extends AppCompatActivity implements
         View.OnClickListener,
-        ChatroomRecyclerAdapter.ChatroomRecyclerClickListener
-{
+        ChatroomRecyclerAdapter.ChatroomRecyclerClickListener {
 
     private static final String TAG = "MainActivity";
 
@@ -71,7 +78,8 @@ public class MainActivity extends AppCompatActivity implements
     private RecyclerView mChatroomRecyclerView;
     private ListenerRegistration mChatroomEventListener;
     private FirebaseFirestore mDb;
-    private  boolean mLocationPermissionGranted = false;
+    private boolean mLocationPermissionGranted = false;
+    private FusedLocationProviderClient mFusedLocationProviderClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,12 +89,29 @@ public class MainActivity extends AppCompatActivity implements
         mChatroomRecyclerView = findViewById(R.id.chatrooms_recycler_view);
 
         findViewById(R.id.fab_create_chatroom).setOnClickListener(this);
-
+        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         mDb = FirebaseFirestore.getInstance();
 
         initSupportActionBar();
         initChatroomRecyclerView();
     }
+
+    private void getLastKnownLocation() {
+        Log.d(TAG, "getLastKnownLocation : called");
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        mFusedLocationProviderClient.getLastLocation().addOnCompleteListener(new OnCompleteListener<Location>() {
+            @Override
+            public void onComplete(@NonNull Task<Location> task) {
+                if (task.isSuccessful()) {
+                    Location location = task.getResult();
+                    GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
+                    Log.d(TAG, "onComplete: latitude" + geoPoint.getLatitude());
+                    Log.d(TAG, "onComplete: longitude" + geoPoint.getLongitude());
+                }
+            }
+        }); }
 
     private boolean checkMapServices(){
         if(isServicesOK()){
@@ -132,6 +157,7 @@ public class MainActivity extends AppCompatActivity implements
                 == PackageManager.PERMISSION_GRANTED) {
             mLocationPermissionGranted = true;
             getChatrooms();
+            getLastKnownLocation();
         } else {
             ActivityCompat.requestPermissions(this,
                     new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
@@ -184,6 +210,7 @@ public class MainActivity extends AppCompatActivity implements
             case PERMISSIONS_REQUEST_ENABLE_GPS: {
                 if(mLocationPermissionGranted){
                     getChatrooms();
+                    getLastKnownLocation();
                 }
                 else{
                     getLocationPermission();
@@ -329,10 +356,10 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     protected void onResume() {
         super.onResume();
-        getChatrooms();
         if (checkMapServices()){
             if (mLocationPermissionGranted){
                 getChatrooms();
+                getLastKnownLocation();
             } else {
                 getLocationPermission();
             }
