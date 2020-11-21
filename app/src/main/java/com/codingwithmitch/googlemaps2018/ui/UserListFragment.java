@@ -11,6 +11,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,11 +20,15 @@ import android.view.ViewGroup;
 import com.codingwithmitch.googlemaps2018.R;
 import com.codingwithmitch.googlemaps2018.adapters.UserRecyclerAdapter;
 import com.codingwithmitch.googlemaps2018.models.User;
+import com.codingwithmitch.googlemaps2018.models.UserLocation;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.ArrayList;
 
@@ -41,6 +46,11 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback {
     //vars
     private ArrayList<User> mUserList = new ArrayList<>();
     private UserRecyclerAdapter mUserRecyclerAdapter;
+    private ArrayList<UserLocation> mUserLocation = new ArrayList<>();
+    private GoogleMap mGoogleMap;
+    private LatLngBounds mMapBoundary;
+    private UserLocation mUserPosition;
+
 
 
     public static UserListFragment newInstance() {
@@ -52,6 +62,7 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             mUserList = getArguments().getParcelableArrayList(getString(R.string.intent_user_list));
+            mUserLocation = getArguments().getParcelableArrayList(getString(R.string.intent_user_locations));
         }
     }
 
@@ -63,7 +74,31 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback {
         mMapView = (MapView) view.findViewById(R.id.user_list_map);
         initUserListRecyclerView();
         initGoogleMap(savedInstanceState);
+        mUserPosition();
+
         return view;
+    }
+
+    private void setCameraView(){
+        double bottomBoundary = mUserPosition.getGeo_point().getLatitude() - .1;
+        double leftBoundary = mUserPosition.getGeo_point().getLongitude() - .1;
+        double topBoundary = mUserPosition.getGeo_point().getLatitude() + .1;
+        double rightBoundary = mUserPosition.getGeo_point().getLongitude() - .1;
+
+        mMapBoundary = new LatLngBounds(
+                new LatLng(bottomBoundary, leftBoundary),
+                new LatLng(topBoundary, rightBoundary)
+        );
+
+        mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mMapBoundary, 0));
+    }
+
+    private void mUserPosition(){
+        for (UserLocation userLocation: mUserLocation){
+            if (userLocation.getUser().getUser_id().equals(FirebaseAuth.getInstance().getUid())){
+                mUserPosition = userLocation;
+            }
+        }
     }
 
     private void initGoogleMap(Bundle savedInstanceState) {
@@ -127,6 +162,8 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback {
             return;
         }
         map.setMyLocationEnabled(true);
+        mGoogleMap = map;
+        setCameraView();
     }
 
     @Override

@@ -13,6 +13,7 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 
+import com.codingwithmitch.googlemaps2018.UserClient;
 import com.codingwithmitch.googlemaps2018.models.User;
 import com.codingwithmitch.googlemaps2018.models.UserLocation;
 import com.google.android.gms.common.ConnectionResult;
@@ -115,6 +116,7 @@ public class MainActivity extends AppCompatActivity implements
 
                     User user = task.getResult().toObject(User.class);
                     mUserLocation.setUser(user);
+                    ((UserClient)(getApplicationContext())).setUser(user);
                     getLastKnownLocation();
                 }
             });
